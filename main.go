@@ -54,7 +54,6 @@ func main() {
 	r := gin.Default()
 	r.MaxMultipartMemory = 4 << 20
 
-	// 自定义模板函数
 	r.SetFuncMap(template.FuncMap{
 		"firstChar": firstChar,
 		"onlineStatus": func(t *time.Time) string {
@@ -93,7 +92,11 @@ func main() {
 		auth.GET("/friends", relH.FriendsList)
 		auth.GET("/friends/add", relH.FriendsAddPage)
 		auth.POST("/friends/add", relH.FriendsAdd)
+		auth.GET("/friends/requests", relH.FriendsRequests)
+		auth.POST("/friends/:id/accept", relH.FriendAccept)
+		auth.POST("/friends/:id/decline", relH.FriendDecline)
 		auth.GET("/friends/:id", relH.FriendDetail)
+		auth.GET("/notifications", relH.Notifications)
 		auth.POST("/friends/:id/edit", relH.FriendEdit)
 		auth.POST("/friends/:id/remove", relH.FriendRemove)
 		auth.GET("/plans", planH.PlanList)

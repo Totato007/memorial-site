@@ -1,0 +1,65 @@
+{{ define "notifications.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:16px;">消息中心</h2>
+
+        <!-- 好友申请 -->
+        {{ if .requests }}
+        <div class="card" style="margin-bottom:16px;">
+            <h3 class="card-title">好友申请 ({{ len .requests }})</h3>
+            {{ range .requests }}
+            <div class="search-result-item">
+                <div>
+                    <strong>{{ .User.Nickname }}</strong>
+                    <span style="color:var(--color-text-muted);font-size:0.85rem;">@{{ .User.Username }}</span>
+                    <div style="font-size:0.8rem;color:var(--color-text-muted);">
+                        想成为你的 {{ if .CustomType }}{{ .CustomType }}{{ else }}{{ .Type }}{{ end }}
+                        &middot; {{ .CreatedAt.Format "01-02 15:04" }}
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <form method="post" action="/friends/{{ .ID }}/accept" style="display:inline">
+                        <button type="submit" class="btn btn-sm btn-primary">通过</button>
+                    </form>
+                    <form method="post" action="/friends/{{ .ID }}/decline" style="display:inline">
+                        <button type="submit" class="btn btn-sm btn-outline">拒绝</button>
+                    </form>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+        {{ end }}
+
+        <!-- 最近聊天 -->
+        {{ if .recentChats }}
+        <div class="card">
+            <h3 class="card-title">最近消息</h3>
+            {{ range .recentChats }}
+            <a href="/chat?with={{ .RelID }}" class="search-result-item" style="text-decoration:none;color:inherit;">
+                <div>
+                    <strong>{{ .FriendName }}</strong>
+                    <div style="font-size:0.82rem;color:var(--color-text);margin-top:2px;">{{ .LastMsg }}</div>
+                </div>
+                <span style="font-size:0.75rem;color:var(--color-text-muted);">{{ .Time }}</span>
+            </a>
+            {{ end }}
+        </div>
+        {{ end }}
+
+        {{ if not .requests }}{{ if not .recentChats }}
+        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+            <p>暂无新消息</p>
+        </div>
+        {{ end }}{{ end }}
+    </main>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

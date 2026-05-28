@@ -13,54 +13,85 @@
         {{ if .error }}
         <div class="alert alert-error">{{ .error }}</div>
         {{ end }}
+        {{ if .success }}
+        <div class="alert alert-success">{{ .success }}</div>
+        {{ end }}
 
         {{ if .searchResults }}
-        <!-- 搜索结果 -->
         <div class="card" style="margin-bottom:16px;">
-            <h3 class="card-title">搜索结果: "{{ .searchQuery }}"</h3>
+            <h3 class="card-title">搜索 "{{ .searchQuery }}" 的结果</h3>
             {{ range .searchResults }}
             <div class="search-result-item">
                 <div>
                     <strong>{{ .Nickname }}</strong>
                     <span style="color:var(--color-text-muted);font-size:0.85rem;">@{{ .Username }}</span>
                 </div>
-                <form method="post" action="/friends/add" style="display:inline;">
-                    <input type="hidden" name="friend_id" value="{{ .ID }}">
-                    <input type="hidden" name="type" value="{{ $.relType }}">
-                    <input type="hidden" name="custom_type" value="{{ $.customType }}">
-                    <input type="hidden" name="start_date" value="">
-                    <button type="submit" class="btn btn-sm btn-primary">添加</button>
-                </form>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" class="nickname-input" placeholder="备注(可选)" style="width:100px;padding:4px 8px;font-size:0.8rem;border:1px solid var(--color-border);border-radius:4px;">
+                    <button class="btn btn-sm btn-primary send-req-btn" data-friend-id="{{ .ID }}" data-type="{{ $.relType }}" data-custom="{{ $.customType }}">发送申请</button>
+                </div>
             </div>
             {{ end }}
         </div>
         {{ end }}
 
-        <!-- 搜索表单 -->
         <div class="card">
-            <form method="post" action="/friends/add">
-                <div class="form-group">
-                    <label for="query">搜索用户 (用户名/手机号/昵称)</label>
-                    <input type="text" id="query" name="query" required placeholder="输入对方信息搜索" value="{{ .searchQuery }}">
-                </div>
-                <div class="form-group">
-                    <label for="type">关系类型</label>
-                    <select id="type" name="type" onchange="this.form.custom_type.style.display=this.value==='custom'?'block':'none'">
-                        <option value="friend" {{ if eq .relType "friend" }}selected{{ end }}>好友</option>
-                        <option value="couple" {{ if eq .relType "couple" }}selected{{ end }}>情侣</option>
-                        <option value="family" {{ if eq .relType "family" }}selected{{ end }}>家人</option>
-                        <option value="custom" {{ if eq .relType "custom" }}selected{{ end }}>自定义</option>
-                    </select>
-                </div>
-                <div class="form-group" id="custom-type-group" style="display:{{ if eq .relType "custom" }}block{{ else }}none{{ end }}">
-                    <label for="custom_type">自定义名称</label>
-                    <input type="text" id="custom_type" name="custom_type" value="{{ .customType }}">
-                </div>
-                <button type="submit" class="btn btn-primary">搜索用户</button>
-            </form>
+            <h3 class="card-title">搜索用户</h3>
+            <div class="form-group">
+                <label for="query">用户名 / 手机号 / 昵称</label>
+                <input type="text" id="query" name="query" placeholder="输入对方信息" value="{{ .searchQuery }}">
+            </div>
+            <div class="form-group">
+                <label for="type">关系类型</label>
+                <select id="type" name="type" onchange="document.getElementById('custom-type-group').style.display=this.value==='custom'?'block':'none'">
+                    <option value="friend" {{ if eq .relType "friend" }}selected{{ end }}>好友</option>
+                    <option value="couple" {{ if eq .relType "couple" }}selected{{ end }}>情侣 (仅1个)</option>
+                    <option value="family" {{ if eq .relType "family" }}selected{{ end }}>家人</option>
+                    <option value="custom" {{ if eq .relType "custom" }}selected{{ end }}>自定义</option>
+                </select>
+            </div>
+            <div class="form-group" id="custom-type-group" style="display:{{ if eq .relType "custom" }}block{{ else }}none{{ end }}">
+                <label for="custom_type">自定义名称</label>
+                <input type="text" id="custom_type" name="custom_type" value="{{ .customType }}" placeholder="例如：灵魂伴侣">
+            </div>
+            <button onclick="doSearch()" class="btn btn-primary">搜索</button>
         </div>
     </main>
     {{ template "footer" . }}
+    <script>
+    function doSearch() {
+        var q = document.getElementById('query').value.trim();
+        if (!q) { alert('请输入搜索内容'); return; }
+        var t = document.getElementById('type').value;
+        var c = document.getElementById('custom_type').value;
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/friends/add';
+        var f1 = document.createElement('input'); f1.name='query'; f1.value=q; form.appendChild(f1);
+        var f2 = document.createElement('input'); f2.name='type'; f2.value=t; form.appendChild(f2);
+        var f3 = document.createElement('input'); f3.name='custom_type'; f3.value=c; form.appendChild(f3);
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    document.querySelectorAll('.send-req-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var fid = this.dataset.friendId;
+            var type = this.dataset.type;
+            var custom = this.dataset.custom;
+            var nickname = this.parentElement.querySelector('.nickname-input').value;
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/friends/add';
+            var f1 = document.createElement('input'); f1.name='friend_id'; f1.value=fid; form.appendChild(f1);
+            var f2 = document.createElement('input'); f2.name='type'; f2.value=type; form.appendChild(f2);
+            var f3 = document.createElement('input'); f3.name='custom_type'; f3.value=custom; form.appendChild(f3);
+            var f4 = document.createElement('input'); f4.name='nickname'; f4.value=nickname; form.appendChild(f4);
+            document.body.appendChild(form);
+            form.submit();
+        });
+    });
+    </script>
 </body>
 </html>
 {{ end }}

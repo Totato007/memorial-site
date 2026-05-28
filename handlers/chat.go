@@ -25,18 +25,14 @@ func NewChatHandler(db *gorm.DB, imgSvc *services.ImageService) *ChatHandler {
 func (h *ChatHandler) ChatPage(c *gin.Context) {
 	userID := c.GetUint("userID")
 
-	// 加载好友列表 (用于选择聊天对象)
 	var friends []models.Relationship
 	h.db.Where("user_id = ? AND status = ?", userID, "active").
-		Preload("Friend").
-		Order("type ASC").
-		Find(&friends)
+		Preload("Friend").Order("type ASC").Find(&friends)
 
-	// 默认选中第一个好友或通过 query 指定
 	selectedID := c.Query("with")
 	var messages []models.ChatMessage
 	var selectedFriend *models.User
-	var selectedRelID uint
+	var chatPartnerID uint
 
 	if selectedID != "" {
 		relID, _ := strconv.ParseUint(selectedID, 10, 64)
@@ -44,14 +40,14 @@ func (h *ChatHandler) ChatPage(c *gin.Context) {
 		if err := h.db.Where("id = ? AND user_id = ? AND status = ?", relID, userID, "active").
 			Preload("Friend").First(&rel).Error; err == nil {
 			selectedFriend = rel.Friend
-			selectedRelID = rel.ID
+			chatPartnerID = rel.FriendID
 
-			// 加载该关系的聊天记录
-			h.db.Where("relationship_id = ?", rel.ID).
+			// 查询双方之间的消息
+			h.db.Where("(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
+				userID, chatPartnerID, chatPartnerID, userID).
 				Preload("Sender").
 				Order("created_at DESC").Limit(50).
 				Find(&messages)
-			// 倒序
 			for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 				messages[i], messages[j] = messages[j], messages[i]
 			}
@@ -61,10 +57,11 @@ func (h *ChatHandler) ChatPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "chat.html", gin.H{
 		"title":          "互动留言",
 		"friends":        friends,
-		"selectedRelID":  selectedRelID,
+		"selectedRelID":  selectedID,
 		"selectedFriend": selectedFriend,
 		"messages":       messages,
 		"userID":         userID,
+		"partnerID":      chatPartnerID,
 	})
 }
 
@@ -74,7 +71,7 @@ func (h *ChatHandler) ChatSend(c *gin.Context) {
 	relIDStr := c.PostForm("rel_id")
 	relID, _ := strconv.ParseUint(relIDStr, 10, 64)
 
-	// 验证关系
+	// 通过关系找到对方ID
 	var rel models.Relationship
 	if err := h.db.Where("id = ? AND user_id = ? AND status = ?", relID, userID, "active").First(&rel).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "关系不存在"})
@@ -107,10 +104,10 @@ func (h *ChatHandler) ChatSend(c *gin.Context) {
 	}
 
 	msg := models.ChatMessage{
-		RelationshipID: uint(relID),
-		SenderID:       userID,
-		Content:        content,
-		ImagePath:      imagePath,
+		SenderID:   userID,
+		ReceiverID: rel.FriendID,
+		Content:    content,
+		ImagePath:  imagePath,
 	}
 	h.db.Create(&msg)
 
@@ -128,7 +125,7 @@ func (h *ChatHandler) ChatPoll(c *gin.Context) {
 	relIDStr := c.Query("rel_id")
 	relID, _ := strconv.ParseUint(relIDStr, 10, 64)
 
-	// 验证关系
+	// 找到对方ID
 	var rel models.Relationship
 	if err := h.db.Where("id = ? AND user_id = ? AND status = ?", relID, userID, "active").First(&rel).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "关系不存在"})
@@ -138,7 +135,8 @@ func (h *ChatHandler) ChatPoll(c *gin.Context) {
 	lastID, _ := strconv.ParseInt(c.Query("last_id"), 10, 64)
 
 	var messages []models.ChatMessage
-	h.db.Where("relationship_id = ? AND id > ?", rel.ID, lastID).
+	h.db.Where("id > ? AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))",
+		lastID, userID, rel.FriendID, rel.FriendID, userID).
 		Preload("Sender").Order("id ASC").Find(&messages)
 
 	c.JSON(http.StatusOK, messages)

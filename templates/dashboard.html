@@ -8,6 +8,13 @@
 <body>
     {{ template "nav" . }}
     <main class="container">
+        {{ if .pendingCount }}
+        <a href="/friends/requests" class="card" style="display:block;text-decoration:none;padding:14px 20px;border-color:var(--color-accent);background:#fdf8f3;">
+            <span style="font-weight:500;">你有 {{ .pendingCount }} 条待处理的好友申请</span>
+            <span style="color:var(--color-accent);float:right;">查看 &rarr;</span>
+        </a>
+        {{ end }}
+
         {{ if .rels }}
             {{ range $typeName, $group := .groups }}
             <div class="friend-group">

@@ -23,7 +23,7 @@
         {{ if .selectedFriend }}
         <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:12px;">与 {{ .selectedFriend.Nickname }} 的对话</h2>
 
-        <div id="chat-box" class="chat-box" data-rel="{{ .selectedRelID }}">
+        <div id="chat-box" class="chat-box" data-rel="{{ .selectedRelID }}" data-user="{{ .userID }}">
             {{ range .messages }}
             <div class="chat-msg {{ if eq .SenderID $.userID }}msg-mine{{ else }}msg-theirs{{ end }}" data-id="{{ .ID }}">
                 <div class="msg-sender">{{ .Sender.Nickname }}</div>
