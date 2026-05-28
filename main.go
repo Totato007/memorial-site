@@ -56,6 +56,8 @@ func main() {
 
 	r.SetFuncMap(template.FuncMap{
 		"firstChar": firstChar,
+		"smartTime": services.SmartTime,
+		"smartDate": services.SmartDate,
 		"onlineStatus": func(t *time.Time) string {
 			s, _ := services.OnlineStatus(t)
 			return s
@@ -111,6 +113,8 @@ func main() {
 		auth.POST("/diary", diaryH.DiaryCreate)
 		auth.POST("/diary/:id", diaryH.DiaryUpdate)
 		auth.POST("/diary/:id/delete", diaryH.DiaryDelete)
+		auth.POST("/diary/:id/comment", diaryH.CommentCreate)
+		auth.POST("/diary/:id/like", diaryH.LikeToggle)
 		auth.GET("/public", diaryH.PublicFeed)
 		auth.GET("/albums", albumH.AlbumList)
 		auth.POST("/albums", albumH.AlbumCreate)

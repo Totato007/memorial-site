@@ -57,8 +57,8 @@ func (s *ImageService) ProcessImage(file io.Reader, ext string, subDir string) (
 	if format != "jpeg" {
 		origFilename = strings.TrimSuffix(filename, ext) + ".jpg"
 	}
-	origPath = filepath.Join(subDir, origFilename)
-	fullOrigPath := filepath.Join(s.cfg.UploadDir, origPath)
+	origPath = filepath.ToSlash(filepath.Join(subDir, origFilename))
+	fullOrigPath := filepath.Join(s.cfg.UploadDir, filepath.FromSlash(origPath))
 	outFile, err := os.Create(fullOrigPath)
 	if err != nil {
 		return "", "", err
@@ -74,8 +74,8 @@ func (s *ImageService) ProcessImage(file io.Reader, ext string, subDir string) (
 		return "", "", err
 	}
 	thumbFilename := "thumb_" + origFilename
-	thumbPath = filepath.Join(subDir, thumbFilename)
-	fullThumbPath := filepath.Join(s.cfg.UploadDir, thumbPath)
+	thumbPath = filepath.ToSlash(filepath.Join(subDir, thumbFilename))
+	fullThumbPath := filepath.Join(s.cfg.UploadDir, filepath.FromSlash(thumbPath))
 	thumbFile, err := os.Create(fullThumbPath)
 	if err != nil {
 		return "", "", err

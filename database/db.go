@@ -39,6 +39,8 @@ func Init(cfg *config.Config, authSvc *services.AuthService) (*gorm.DB, error) {
 		&models.Photo{},
 		&models.Tag{},
 		&models.Tagging{},
+		&models.Comment{},
+		&models.Like{},
 	)
 
 	// 种子管理员账号 — 仅在不存在时创建

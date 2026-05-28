@@ -72,6 +72,24 @@ func OnlineStatusShort(lastActive *time.Time) string {
 	}
 }
 
+// SmartTime 智能时间显示 — 今天显示"今天 15:04"，否则显示"2006-01-02 15:04"
+func SmartTime(t time.Time) string {
+	now := time.Now()
+	if t.Year() == now.Year() && t.YearDay() == now.YearDay() {
+		return "今天 " + t.Format("15:04")
+	}
+	return t.Format("2006-01-02 15:04")
+}
+
+// SmartDate 智能日期 — 今天显示"今天"，否则显示"01月02日"
+func SmartDate(t time.Time) string {
+	now := time.Now()
+	if t.Year() == now.Year() && t.YearDay() == now.YearDay() {
+		return "今天"
+	}
+	return t.Format("01月02日")
+}
+
 // DaysInYear 计算两个日期之间跨越的年数和余天
 func DaysInYear(startDate time.Time) (years int, days int) {
 	now := time.Now()

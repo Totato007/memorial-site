@@ -8,34 +8,90 @@
 <body>
     {{ template "nav" . }}
     <main class="container">
-        <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:16px;">公共广场</h2>
+        <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:8px;">公共广场</h2>
         <p style="color:var(--color-text-muted);font-size:0.85rem;margin-bottom:16px;">这里展示所有人公开分享的心情日记</p>
 
         {{ if .entries }}
         <div class="diary-list">
             {{ range .entries }}
-            <div class="diary-entry">
+            <div class="diary-entry" id="entry-{{ .ID }}">
                 <div class="diary-header">
                     <span class="diary-mood">
                         {{ if eq .Mood "happy" }}&#128522;{{ else if eq .Mood "excited" }}&#127881;{{ else if eq .Mood "calm" }}&#128524;{{ else if eq .Mood "sad" }}&#128546;{{ else if eq .Mood "anxious" }}&#128552;{{ else if eq .Mood "angry" }}&#128545;{{ else }}&#128528;{{ end }}
                     </span>
                     <span class="diary-author">{{ .User.Nickname }}</span>
-                    <span class="diary-date">{{ .EntryDate.Format "2006-01-02" }}</span>
+                    <span class="diary-time">{{ .SmartTime }}</span>
                 </div>
                 <div class="diary-content">{{ .Content }}</div>
                 {{ if .ImagePath }}
                 <div class="diary-image"><img src="/uploads/{{ .ImagePath }}" loading="lazy"></div>
                 {{ end }}
+
+                <!-- 点赞 + 评论 -->
+                <div class="entry-actions">
+                    <button class="like-btn {{ if .UserLiked }}liked{{ end }}" onclick="toggleLike({{ .ID }})" {{ if not $.userID }}disabled{{ end }}>
+                        &#10084; <span class="like-count">{{ .LikeCount }}</span>
+                    </button>
+                    <button class="comment-toggle-btn" onclick="document.getElementById('comments-{{ .ID }}').classList.toggle('hidden')">
+                        &#128172; {{ len .Comments }}
+                    </button>
+                </div>
+
+                <!-- 评论区 -->
+                <div id="comments-{{ .ID }}" class="comments-section hidden">
+                    {{ range .Comments }}
+                    <div class="comment-item">
+                        <strong>{{ .User.Nickname }}</strong>
+                        <span class="comment-time">{{ smartTime .CreatedAt }}</span>
+                        <div class="comment-content">{{ .Content }}</div>
+                    </div>
+                    {{ end }}
+                    {{ if $.userID }}
+                    <div class="comment-form">
+                        <input type="text" class="comment-input" id="comment-input-{{ .ID }}" placeholder="写评论...">
+                        <button class="btn btn-sm btn-primary" onclick="addComment({{ .ID }})">发送</button>
+                    </div>
+                    {{ end }}
+                </div>
             </div>
             {{ end }}
         </div>
         {{ else }}
-        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
-            <p>还没有公开的日记</p>
-        </div>
+        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);"><p>还没有公开的日记</p></div>
         {{ end }}
     </main>
     {{ template "footer" . }}
+    <script>
+    function toggleLike(id) {
+        fetch('/diary/'+id+'/like', {method:'POST'}).then(function(r){return r.json()}).then(function(d){
+            var btn = document.querySelector('#entry-'+id+' .like-btn');
+            btn.classList.toggle('liked', d.liked);
+            btn.querySelector('.like-count').textContent = d.count;
+        });
+    }
+    function addComment(id) {
+        var inp = document.getElementById('comment-input-'+id);
+        var content = inp.value.trim();
+        if (!content) return;
+        fetch('/diary/'+id+'/comment', {
+            method:'POST',
+            headers:{'Content-Type':'application/x-www-form-urlencoded'},
+            body:'content='+encodeURIComponent(content)
+        }).then(function(r){return r.json()}).then(function(d){
+            inp.value = '';
+            var sec = document.getElementById('comments-'+id);
+            sec.classList.remove('hidden');
+            var div = document.createElement('div');
+            div.className = 'comment-item';
+            div.innerHTML = '<strong>' + d.user.nickname + '</strong> <span class="comment-time">刚刚</span><div class="comment-content">' + d.content + '</div>';
+            sec.insertBefore(div, sec.querySelector('.comment-form'));
+            // 更新评论计数
+            var btn = document.querySelector('#entry-'+id+' .comment-toggle-btn');
+            var count = btn.textContent.match(/\d+/);
+            btn.innerHTML = '&#128172; ' + (count ? parseInt(count[0])+1 : 1);
+        });
+    }
+    </script>
 </body>
 </html>
 {{ end }}
