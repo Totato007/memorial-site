@@ -8,20 +8,28 @@
 <body>
     {{ template "nav" . }}
     <main class="container">
-        <!-- 好友选择 -->
-        {{ if .friends }}
-        <div class="chat-friend-select">
-            <span style="color:var(--color-text-muted);font-size:0.85rem;">选择聊天对象: </span>
-            {{ range .friends }}
-            <a href="/chat?with={{ .ID }}" class="filter-chip {{ if eq $.selectedRelID .ID }}active{{ end }}">
-                {{ if .Nickname }}{{ .Nickname }}{{ else }}{{ .Friend.Nickname }}{{ end }}
-            </a>
-            {{ end }}
-        </div>
-        {{ end }}
-
         {{ if .selectedFriend }}
-        <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:12px;">与 {{ .selectedFriend.Nickname }} 的对话</h2>
+        <!-- 正在和某人聊天 -->
+        <div class="card-header">
+            <h2 style="font-size:1.15rem;font-weight:600;">
+                <a href="/friends/{{ .selectedRelID }}" style="text-decoration:none;color:inherit;">
+                    {{ if .selectedFriend.Nickname }}{{ .selectedFriend.Nickname }}{{ else }}TA{{ end }}
+                </a>
+            </h2>
+            <div class="btn-group">
+                {{ if .friends }}
+                <select onchange="if(this.value)location.href='/chat?with='+this.value" class="plan-status-select">
+                    <option value="">切换对话</option>
+                    {{ range .friends }}
+                    <option value="{{ .ID }}" {{ if eq $.selectedRelID .ID }}selected{{ end }}>
+                        {{ if .Nickname }}{{ .Nickname }}{{ else }}{{ .Friend.Nickname }}{{ end }}
+                    </option>
+                    {{ end }}
+                </select>
+                {{ end }}
+                <a href="/friends" class="btn btn-sm btn-outline">好友列表</a>
+            </div>
+        </div>
 
         <div id="chat-box" class="chat-box" data-rel="{{ .selectedRelID }}" data-user="{{ .userID }}">
             {{ range .messages }}
@@ -36,17 +44,35 @@
 
         <form id="chat-form" class="chat-form" onsubmit="return sendMessage({{ .selectedRelID }})">
             <div class="chat-input-row">
-                <textarea id="chat-input" name="content" rows="2" placeholder="发送消息..."></textarea>
+                <textarea id="chat-input" name="content" rows="2" placeholder="发送消息..." autofocus></textarea>
                 <input type="file" id="chat-image" name="image" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="document.getElementById('img-label').textContent=this.files[0]?'已选图':'图片'">
                 <label id="img-label" for="chat-image" class="btn btn-sm btn-outline chat-img-btn">图片</label>
                 <button type="submit" class="btn btn-sm btn-primary">发送</button>
             </div>
             <div id="chat-error" class="alert alert-error hidden"></div>
         </form>
+
+        {{ else if .friends }}
+        <!-- 选择好友开始聊天 -->
+        <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:16px;">选择聊天对象</h2>
+        <div class="friend-grid">
+            {{ range .friends }}
+            <a href="/chat?with={{ .ID }}" class="friend-card">
+                <div class="fr-avatar">{{ if .Friend }}{{ firstChar .Friend.Nickname }}{{ else }}TA{{ end }}</div>
+                <div class="fr-info">
+                    <div class="fr-name">{{ if .Nickname }}{{ .Nickname }}{{ else }}{{ if .Friend }}{{ .Friend.Nickname }}{{ else }}TA{{ end }}{{ end }}</div>
+                    <div class="fr-status" style="color:var(--color-text-muted);font-size:0.75rem;">点击开始聊天</div>
+                </div>
+            </a>
+            {{ end }}
+        </div>
+
         {{ else }}
-        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
-            <p>还没有好友，先去添加好友吧</p>
-            <a href="/friends/add" class="btn btn-primary btn-sm">添加好友</a>
+        <!-- 没有好友 -->
+        <div class="card" style="text-align:center;padding:48px 24px;">
+            <h2 style="margin-bottom:12px;font-weight:500;">还没有好友</h2>
+            <p style="color:var(--color-text-muted);margin-bottom:24px;">先添加好友才能聊天</p>
+            <a href="/friends/add" class="btn btn-primary">添加好友</a>
         </div>
         {{ end }}
     </main>
