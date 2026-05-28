@@ -55,6 +55,8 @@ a:hover { color: var(--color-primary-hover); }
     align-items: center;
     justify-content: space-between;
 }
+.nav-back { font-size: 1.1rem; color: var(--color-text-muted); text-decoration: none; padding: 4px 8px; margin-right: 4px; border-radius: 4px; }
+.nav-back:hover { background: var(--color-bg); color: var(--color-text); }
 .nav-brand {
     font-size: 1.1rem;
     font-weight: 600;

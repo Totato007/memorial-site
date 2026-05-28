@@ -7,11 +7,13 @@
 {{ define "nav" }}
 <nav class="nav">
     <div class="nav-inner">
+        <a href="javascript:history.back()" class="nav-back" title="返回上一页">&larr;</a>
         <a href="/dashboard" class="nav-brand">纪念站</a>
         <div class="nav-links">
             {{ if .userID }}
                 <a href="/dashboard">首页</a>
                 <a href="/friends">好友</a>
+                <a href="/chat">聊天</a>
                 <a href="/notifications">消息</a>
                 <a href="/diary">日记</a>
                 <a href="/plans">计划</a>

@@ -46,6 +46,12 @@
             </a>
             {{ end }}
         </div>
+        {{ else if .noRel }}
+        <div class="card" style="text-align:center;padding:48px 24px;">
+            <p style="font-size:1.1rem;margin-bottom:8px;">还没有好友</p>
+            <p style="color:var(--color-text-muted);margin-bottom:24px;">添加好友后即可创建专属相册</p>
+            <a href="/friends/add" class="btn btn-primary">添加好友</a>
+        </div>
         {{ else }}
         <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
             <p>还没有相册，创建第一个相册记录美好瞬间吧</p>

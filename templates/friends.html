@@ -19,13 +19,16 @@
                 <h3 class="group-title">{{ $typeName }} <span class="group-count">{{ len $group }}</span></h3>
                 <div class="friend-grid">
                     {{ range $group }}
-                    <a href="/friends/{{ .ID }}" class="friend-card">
-                        <div class="fr-avatar">{{ if .Friend }}{{ firstChar .Friend.Nickname }}{{ else }}TA{{ end }}</div>
-                        <div class="fr-info">
-                            <div class="fr-name">{{ if .Nickname }}{{ .Nickname }}{{ else }}{{ if .Friend }}{{ .Friend.Nickname }}{{ else }}TA{{ end }}{{ end }}</div>
-                            <div class="fr-status status-{{ .Friend.LastActiveAt | onlineClass }}">{{ .Friend.LastActiveAt | onlineStatus }}</div>
-                        </div>
-                    </a>
+                    <div class="friend-card">
+                        <a href="/friends/{{ .ID }}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;flex:1;min-width:0;">
+                            <div class="fr-avatar">{{ if .Friend }}{{ firstChar .Friend.Nickname }}{{ else }}TA{{ end }}</div>
+                            <div class="fr-info">
+                                <div class="fr-name">{{ if .Nickname }}{{ .Nickname }}{{ else }}{{ if .Friend }}{{ .Friend.Nickname }}{{ else }}TA{{ end }}{{ end }}</div>
+                                <div class="fr-status status-{{ .Friend.LastActiveAt | onlineClass }}">{{ .Friend.LastActiveAt | onlineStatus }}</div>
+                            </div>
+                        </a>
+                        <a href="/chat?with={{ .ID }}" class="btn btn-sm btn-primary" style="flex-shrink:0;">聊天</a>
+                    </div>
                     {{ end }}
                 </div>
             </div>

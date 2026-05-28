@@ -31,17 +31,16 @@
         <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:4px;">消息中心</h2>
 
         <div class="msg-tabs">
-            <button class="msg-tab active" onclick="switchTab('incoming')">好友申请
+            <button class="msg-tab active" onclick="switchTab('chats')">最近消息</button>
+            <button class="msg-tab" onclick="switchTab('incoming')">好友申请
                 {{ if .incomingReqs }}<span style="background:var(--color-error);color:#fff;border-radius:10px;padding:1px 6px;font-size:0.7rem;margin-left:4px;">{{ len .incomingReqs }}</span>{{ end }}
             </button>
             <button class="msg-tab" onclick="switchTab('sent')">我的申请
                 {{ if .sentReqs }}<span style="color:var(--color-text-muted);font-size:0.75rem;margin-left:2px;">({{ len .sentReqs }})</span>{{ end }}
             </button>
-            <button class="msg-tab" onclick="switchTab('chats')">最近消息</button>
         </div>
 
-        <!-- 收到的申请 -->
-        <div id="panel-incoming" class="msg-panel active">
+        <div id="panel-incoming" class="msg-panel">
             {{ if .incomingReqs }}
             {{ range .incomingReqs }}
             <div class="req-card">
@@ -89,7 +88,7 @@
         </div>
 
         <!-- 最近消息 -->
-        <div id="panel-chats" class="msg-panel">
+        <div id="panel-chats" class="msg-panel active">
             {{ if .chats }}
             {{ range .chats }}
             <a href="/chat?with={{ .RelID }}" class="req-card" style="text-decoration:none;color:inherit;cursor:pointer;">

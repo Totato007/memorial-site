@@ -26,7 +26,11 @@ func (h *AlbumHandler) AlbumList(c *gin.Context) {
 	userID := c.GetUint("userID")
 	rel := h.findUserRelationship(userID)
 	if rel == nil {
-		c.Redirect(http.StatusFound, "/relationship/bind")
+		c.HTML(http.StatusOK, "album_list.html", gin.H{
+			"title":  "专属相册",
+			"albums": nil,
+			"noRel":  true,
+		})
 		return
 	}
 
@@ -44,7 +48,11 @@ func (h *AlbumHandler) AlbumCreate(c *gin.Context) {
 	userID := c.GetUint("userID")
 	rel := h.findUserRelationship(userID)
 	if rel == nil {
-		c.Redirect(http.StatusFound, "/relationship/bind")
+		c.HTML(http.StatusOK, "album_list.html", gin.H{
+			"title":  "专属相册",
+			"albums": nil,
+			"noRel":  true,
+		})
 		return
 	}
 
@@ -70,7 +78,11 @@ func (h *AlbumHandler) AlbumDetail(c *gin.Context) {
 	userID := c.GetUint("userID")
 	rel := h.findUserRelationship(userID)
 	if rel == nil {
-		c.Redirect(http.StatusFound, "/relationship/bind")
+		c.HTML(http.StatusOK, "album_list.html", gin.H{
+			"title":  "专属相册",
+			"albums": nil,
+			"noRel":  true,
+		})
 		return
 	}
 
@@ -96,7 +108,11 @@ func (h *AlbumHandler) PhotoUpload(c *gin.Context) {
 	userID := c.GetUint("userID")
 	rel := h.findUserRelationship(userID)
 	if rel == nil {
-		c.Redirect(http.StatusFound, "/relationship/bind")
+		c.HTML(http.StatusOK, "album_list.html", gin.H{
+			"title":  "专属相册",
+			"albums": nil,
+			"noRel":  true,
+		})
 		return
 	}
 
@@ -151,7 +167,11 @@ func (h *AlbumHandler) AlbumDelete(c *gin.Context) {
 	userID := c.GetUint("userID")
 	rel := h.findUserRelationship(userID)
 	if rel == nil {
-		c.Redirect(http.StatusFound, "/relationship/bind")
+		c.HTML(http.StatusOK, "album_list.html", gin.H{
+			"title":  "专属相册",
+			"albums": nil,
+			"noRel":  true,
+		})
 		return
 	}
 
@@ -166,7 +186,11 @@ func (h *AlbumHandler) PhotoDelete(c *gin.Context) {
 	userID := c.GetUint("userID")
 	rel := h.findUserRelationship(userID)
 	if rel == nil {
-		c.Redirect(http.StatusFound, "/relationship/bind")
+		c.HTML(http.StatusOK, "album_list.html", gin.H{
+			"title":  "专属相册",
+			"albums": nil,
+			"noRel":  true,
+		})
 		return
 	}
 
@@ -177,7 +201,7 @@ func (h *AlbumHandler) PhotoDelete(c *gin.Context) {
 
 func (h *AlbumHandler) findUserRelationship(userID uint) *models.Relationship {
 	var rel models.Relationship
-	err := h.db.Where("(user_a_id = ? OR user_b_id = ?) AND status = ?", userID, userID, "active").First(&rel).Error
+	err := h.db.Where("user_id = ? AND status = ?", userID, "active").First(&rel).Error
 	if err != nil {
 		return nil
 	}
