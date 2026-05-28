@@ -1,0 +1,42 @@
+{{ define "friends.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <div class="card-header">
+            <h2 style="font-size:1.2rem;font-weight:600;">好友列表</h2>
+            <a href="/friends/add" class="btn btn-primary btn-sm">+ 添加好友</a>
+        </div>
+
+        {{ if .rels }}
+            {{ range $typeName, $group := .groups }}
+            <div class="friend-group">
+                <h3 class="group-title">{{ $typeName }} <span class="group-count">{{ len $group }}</span></h3>
+                <div class="friend-grid">
+                    {{ range $group }}
+                    <a href="/friends/{{ .ID }}" class="friend-card">
+                        <div class="fr-avatar">{{ if .Friend }}{{ firstChar .Friend.Nickname }}{{ else }}TA{{ end }}</div>
+                        <div class="fr-info">
+                            <div class="fr-name">{{ if .Nickname }}{{ .Nickname }}{{ else }}{{ if .Friend }}{{ .Friend.Nickname }}{{ else }}TA{{ end }}{{ end }}</div>
+                            <div class="fr-status status-{{ .Friend.LastActiveAt | onlineClass }}">{{ .Friend.LastActiveAt | onlineStatus }}</div>
+                        </div>
+                    </a>
+                    {{ end }}
+                </div>
+            </div>
+            {{ end }}
+        {{ else }}
+        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+            <p>还没有好友，去添加吧</p>
+        </div>
+        {{ end }}
+    </main>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

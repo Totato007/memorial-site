@@ -1,0 +1,41 @@
+{{ define "register.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1 class="auth-title">注册账号</h1>
+            <p class="auth-subtitle">创建属于你们的纪念空间</p>
+            {{ if .error }}
+            <div class="alert alert-error">{{ .error }}</div>
+            {{ end }}
+            <form method="post" action="/register" class="auth-form">
+                <div class="form-group">
+                    <label for="username">账号 *</label>
+                    <input type="text" id="username" name="username" required placeholder="用于登录">
+                </div>
+                <div class="form-group">
+                    <label for="phone">手机号 *</label>
+                    <input type="text" id="phone" name="phone" required placeholder="也支持手机号登录">
+                </div>
+                <div class="form-group">
+                    <label for="nickname">昵称</label>
+                    <input type="text" id="nickname" name="nickname" placeholder="留空则默认同账号名">
+                </div>
+                <div class="form-group">
+                    <label for="password">密码 *</label>
+                    <input type="password" id="password" name="password" required placeholder="不少于6位">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">注册</button>
+            </form>
+            <p class="auth-switch">已有账号？<a href="/login">立即登录</a></p>
+        </div>
+    </div>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

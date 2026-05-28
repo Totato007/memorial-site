@@ -1,0 +1,58 @@
+{{ define "album_detail.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <div class="card-header">
+            <div>
+                <h2 style="font-size:1.2rem;font-weight:600;">{{ .album.Title }}</h2>
+                {{ if .album.Description }}<p style="color:var(--color-text-muted);font-size:0.85rem;">{{ .album.Description }}</p>{{ end }}
+            </div>
+            <div class="btn-group">
+                <a href="/albums" class="btn btn-sm btn-outline">返回</a>
+                <form method="post" action="/albums/{{ .album.ID }}/delete" style="display:inline" onsubmit="return confirm('确定删除整个相册？')">
+                    <button type="submit" class="btn btn-sm btn-danger">删除相册</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 上传照片 -->
+        <div class="card">
+            <form method="post" action="/albums/{{ .album.ID }}/photos" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="image">上传照片 (JPG/PNG/WebP, 最大2MB)</label>
+                    <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">上传</button>
+            </form>
+        </div>
+
+        <!-- 照片网格 -->
+        {{ if .photos }}
+        <div class="photo-grid">
+            {{ range .photos }}
+            <div class="photo-item">
+                <a href="/uploads/{{ .ImagePath }}" target="_blank">
+                    <img src="/uploads/{{ .ThumbnailPath }}" loading="lazy">
+                </a>
+                <form method="post" action="/albums/{{ $.album.ID }}/photos/{{ .ID }}/delete" onsubmit="return confirm('删除这张照片？')">
+                    <button type="submit" class="btn btn-sm btn-danger photo-del-btn">删除</button>
+                </form>
+            </div>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+            <p>相册还是空的，上传第一张照片吧</p>
+        </div>
+        {{ end }}
+    </main>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

@@ -1,0 +1,142 @@
+{{ define "relationship.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        {{ if .error }}
+        <div class="alert alert-error">{{ .error }}</div>
+        {{ end }}
+
+        {{ if .isBind }}
+        <!-- 绑定新关系表单 -->
+        <div class="card">
+            <h2 class="card-title">绑定关系</h2>
+            <p class="card-subtitle">输入对方的账号或手机号，设置你们的关系</p>
+            <form method="post" action="/relationship/bind">
+                <div class="form-group">
+                    <label for="partner_username">对方账号/手机号 *</label>
+                    <input type="text" id="partner_username" name="partner_username" required placeholder="输入对方的账号或手机号">
+                </div>
+                <div class="form-group">
+                    <label for="type_name">关系类型</label>
+                    <select id="type_name" name="type_name">
+                        <option value="couple">情侣</option>
+                        <option value="friends">挚友</option>
+                        <option value="family">家人</option>
+                        <option value="custom">自定义</option>
+                    </select>
+                </div>
+                <div class="form-group" id="custom-type-group" style="display:none">
+                    <label for="custom_type">自定义关系名称</label>
+                    <input type="text" id="custom_type" name="custom_type" placeholder="例如：灵魂伴侣">
+                </div>
+                <div class="form-group">
+                    <label for="start_date">相识/在一起日期 *</label>
+                    <input type="date" id="start_date" name="start_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="notes">寄语</label>
+                    <textarea id="notes" name="notes" rows="3" placeholder="写下一段话给你们的纪念空间..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">绑定关系</button>
+            </form>
+        </div>
+
+        {{ else if .isEdit }}
+        <!-- 编辑关系 -->
+        <div class="card">
+            <h2 class="card-title">编辑关系</h2>
+            <form method="post" action="/relationship/edit">
+                <div class="form-group">
+                    <label for="my_nickname">我的昵称</label>
+                    <input type="text" id="my_nickname" name="my_nickname" placeholder="你想让对方怎么称呼你" value="{{ .rel.NicknameA }}">
+                </div>
+                <div class="form-group">
+                    <label for="custom_type">关系名称</label>
+                    <input type="text" id="custom_type" name="custom_type" placeholder="自定义关系名称" value="{{ .rel.CustomType }}">
+                </div>
+                <div class="form-group">
+                    <label for="start_date">起始日期</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ .startDateFmt }}">
+                </div>
+                <div class="form-group">
+                    <label for="notes">寄语</label>
+                    <textarea id="notes" name="notes" rows="3">{{ .rel.Notes }}</textarea>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">保存修改</button>
+                    <a href="/relationship" class="btn btn-outline">取消</a>
+                </div>
+            </form>
+        </div>
+
+        {{ else }}
+        <!-- 关系详情展示 -->
+        <div class="card relationship-card">
+            <div class="rel-header">
+                {{ if .rel.CustomType }}
+                <span class="rel-badge">{{ .rel.CustomType }}</span>
+                {{ else }}
+                <span class="rel-badge">{{ .rel.Type }}</span>
+                {{ end }}
+            </div>
+            <div class="rel-body">
+                <div class="rel-partners">
+                    <div class="rel-person">
+                        <div class="rel-avatar">{{ if .rel.UserA }}{{ firstChar .rel.UserA.Nickname }}{{ else }}A{{ end }}</div>
+                        <span class="rel-name">{{ if .rel.NicknameA }}{{ .rel.NicknameA }}{{ else }}{{ if .rel.UserA }}{{ .rel.UserA.Nickname }}{{ else }}TA{{ end }}{{ end }}</span>
+                    </div>
+                    <div class="rel-heart">&hearts;</div>
+                    <div class="rel-person">
+                        <div class="rel-avatar">{{ if .rel.UserB }}{{ firstChar .rel.UserB.Nickname }}{{ else }}B{{ end }}</div>
+                        <span class="rel-name">{{ if .rel.NicknameB }}{{ .rel.NicknameB }}{{ else }}{{ if .rel.UserB }}{{ .rel.UserB.Nickname }}{{ else }}TA{{ end }}{{ end }}</span>
+                    </div>
+                </div>
+                {{ if .rel.Notes }}
+                <p class="rel-notes">{{ .rel.Notes }}</p>
+                {{ end }}
+            </div>
+            <div class="rel-stats">
+                <div class="stat-item">
+                    <span class="stat-number">{{ .daysTogether }}</span>
+                    <span class="stat-label">相处总天数</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ .years }}年{{ .remainingDays }}天</span>
+                    <span class="stat-label">时光印记</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ .daysUntil }}</span>
+                    <span class="stat-label">距离纪念日({{ .annivDate }})</span>
+                </div>
+            </div>
+            <div class="rel-footer">
+                <span class="rel-start">起始日期：{{ .startDateFmt }}</span>
+                <div class="btn-group">
+                    <a href="/relationship/edit" class="btn btn-sm btn-outline">编辑</a>
+                    <form method="post" action="/relationship/unbind" style="display:inline" onsubmit="return confirm('确定要解除关系吗？此操作不可撤销。')">
+                        <button type="submit" class="btn btn-sm btn-danger">解除关系</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+    </main>
+    {{ template "footer" . }}
+    <script>
+    // 关系类型切换 — 显示/隐藏自定义名称输入框
+    var typeSelect = document.getElementById('type_name');
+    if (typeSelect) {
+        typeSelect.addEventListener('change', function() {
+            document.getElementById('custom-type-group').style.display = this.value === 'custom' ? 'block' : 'none';
+        });
+    }
+    </script>
+</body>
+</html>
+{{ end }}

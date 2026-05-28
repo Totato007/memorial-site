@@ -1,0 +1,66 @@
+{{ define "friends_add.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:16px;">添加好友</h2>
+
+        {{ if .error }}
+        <div class="alert alert-error">{{ .error }}</div>
+        {{ end }}
+
+        {{ if .searchResults }}
+        <!-- 搜索结果 -->
+        <div class="card" style="margin-bottom:16px;">
+            <h3 class="card-title">搜索结果: "{{ .searchQuery }}"</h3>
+            {{ range .searchResults }}
+            <div class="search-result-item">
+                <div>
+                    <strong>{{ .Nickname }}</strong>
+                    <span style="color:var(--color-text-muted);font-size:0.85rem;">@{{ .Username }}</span>
+                </div>
+                <form method="post" action="/friends/add" style="display:inline;">
+                    <input type="hidden" name="friend_id" value="{{ .ID }}">
+                    <input type="hidden" name="type" value="{{ $.relType }}">
+                    <input type="hidden" name="custom_type" value="{{ $.customType }}">
+                    <input type="hidden" name="start_date" value="">
+                    <button type="submit" class="btn btn-sm btn-primary">添加</button>
+                </form>
+            </div>
+            {{ end }}
+        </div>
+        {{ end }}
+
+        <!-- 搜索表单 -->
+        <div class="card">
+            <form method="post" action="/friends/add">
+                <div class="form-group">
+                    <label for="query">搜索用户 (用户名/手机号/昵称)</label>
+                    <input type="text" id="query" name="query" required placeholder="输入对方信息搜索" value="{{ .searchQuery }}">
+                </div>
+                <div class="form-group">
+                    <label for="type">关系类型</label>
+                    <select id="type" name="type" onchange="this.form.custom_type.style.display=this.value==='custom'?'block':'none'">
+                        <option value="friend" {{ if eq .relType "friend" }}selected{{ end }}>好友</option>
+                        <option value="couple" {{ if eq .relType "couple" }}selected{{ end }}>情侣</option>
+                        <option value="family" {{ if eq .relType "family" }}selected{{ end }}>家人</option>
+                        <option value="custom" {{ if eq .relType "custom" }}selected{{ end }}>自定义</option>
+                    </select>
+                </div>
+                <div class="form-group" id="custom-type-group" style="display:{{ if eq .relType "custom" }}block{{ else }}none{{ end }}">
+                    <label for="custom_type">自定义名称</label>
+                    <input type="text" id="custom_type" name="custom_type" value="{{ .customType }}">
+                </div>
+                <button type="submit" class="btn btn-primary">搜索用户</button>
+            </form>
+        </div>
+    </main>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

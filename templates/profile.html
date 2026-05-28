@@ -1,0 +1,47 @@
+{{ define "profile.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <div class="card">
+            <h2 class="card-title">个人资料</h2>
+            {{ if .error }}
+            <div class="alert alert-error">{{ .error }}</div>
+            {{ end }}
+            {{ if .success }}
+            <div class="alert alert-success">{{ .success }}</div>
+            {{ end }}
+            <form method="post" action="/profile" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" value="{{ .user.Username }}" disabled>
+                </div>
+                <div class="form-group">
+                    <label>手机号</label>
+                    <input type="text" value="{{ .user.Phone }}" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="nickname">昵称</label>
+                    <input type="text" id="nickname" name="nickname" value="{{ .user.Nickname }}">
+                </div>
+                <div class="form-group">
+                    <label for="bio">个人简介</label>
+                    <textarea id="bio" name="bio" rows="3">{{ .user.Bio }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="password">新密码 (留空不修改)</label>
+                    <input type="password" id="password" name="password" placeholder="输入新密码">
+                </div>
+                <button type="submit" class="btn btn-primary">保存修改</button>
+            </form>
+        </div>
+    </main>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

@@ -1,0 +1,46 @@
+{{ define "dashboard.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        {{ if .rels }}
+            {{ range $typeName, $group := .groups }}
+            <div class="friend-group">
+                <h3 class="group-title">{{ $typeName }} <span class="group-count">{{ len $group }}</span></h3>
+                <div class="friend-grid">
+                    {{ range $group }}
+                    <a href="/friends/{{ .ID }}" class="friend-card">
+                        <div class="fr-avatar">{{ if .Friend }}{{ firstChar .Friend.Nickname }}{{ else }}TA{{ end }}</div>
+                        <div class="fr-info">
+                            <div class="fr-name">{{ if .Nickname }}{{ .Nickname }}{{ else }}{{ if .Friend }}{{ .Friend.Nickname }}{{ else }}TA{{ end }}{{ end }}</div>
+                            <div class="fr-status status-{{ .Friend.LastActiveAt | onlineClass }}">{{ .Friend.LastActiveAt | onlineStatus }}</div>
+                        </div>
+                    </a>
+                    {{ end }}
+                </div>
+            </div>
+            {{ end }}
+        {{ else }}
+        <div class="card" style="text-align:center;padding:48px 24px;">
+            <h2 style="margin-bottom:12px;font-weight:500;">欢迎来到纪念站</h2>
+            <p style="color:var(--color-text-muted);margin-bottom:24px;">还没有好友？快去添加吧</p>
+            <a href="/friends/add" class="btn btn-primary">添加好友</a>
+        </div>
+        {{ end }}
+
+        <div class="quick-actions">
+            <a href="/diary" class="quick-action-card"><span class="qa-icon">&#128214;</span><span class="qa-label">心情日记</span></a>
+            <a href="/plans" class="quick-action-card"><span class="qa-icon">&#128203;</span><span class="qa-label">未来计划</span></a>
+            <a href="/albums" class="quick-action-card"><span class="qa-icon">&#128247;</span><span class="qa-label">专属相册</span></a>
+            <a href="/public" class="quick-action-card"><span class="qa-icon">&#127758;</span><span class="qa-label">公共广场</span></a>
+        </div>
+    </main>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

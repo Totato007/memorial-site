@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go mod *)",
+      "Bash(go version *)",
+      "Read(//c/Program Files/Go/bin/**)",
+      "Read(//c/Go/bin/**)",
+      "Bash(where go *)"
+    ]
+  }
+}

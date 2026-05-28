@@ -1,0 +1,58 @@
+{{ define "album_list.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <div class="card-header">
+            <h2 style="font-size:1.2rem;font-weight:600;">专属相册</h2>
+            <button onclick="document.getElementById('new-album').classList.toggle('hidden')" class="btn btn-primary btn-sm">+ 新建相册</button>
+        </div>
+
+        <div id="new-album" class="card hidden">
+            <form method="post" action="/albums">
+                <div class="form-group">
+                    <label for="title">相册名称</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">描述</label>
+                    <textarea id="description" name="description" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">创建相册</button>
+            </form>
+        </div>
+
+        {{ if .albums }}
+        <div class="album-grid">
+            {{ range .albums }}
+            <a href="/albums/{{ .ID }}" class="album-card">
+                <div class="album-cover">
+                    {{ if .CoverImage }}
+                    <img src="/uploads/{{ .CoverImage }}" loading="lazy">
+                    {{ else }}
+                    <div class="album-cover-empty">📷</div>
+                    {{ end }}
+                </div>
+                <div class="album-info">
+                    <div class="album-title">{{ .Title }}</div>
+                    <div class="album-desc">{{ .Description }}</div>
+                    <div class="album-date">{{ .CreatedAt.Format "2006-01-02" }}</div>
+                </div>
+            </a>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+            <p>还没有相册，创建第一个相册记录美好瞬间吧</p>
+        </div>
+        {{ end }}
+    </main>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

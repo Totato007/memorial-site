@@ -1,0 +1,108 @@
+{{ define "diary.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <div class="card-header">
+            <h2 style="font-size:1.2rem;font-weight:600;">心情日记</h2>
+            <button onclick="document.getElementById('new-diary').classList.toggle('hidden')" class="btn btn-primary btn-sm">+ 写日记</button>
+        </div>
+
+        <div id="new-diary" class="card hidden">
+            <form method="post" action="/diary" enctype="multipart/form-data">
+                <div class="form-group"><label>日期</label><input type="date" name="entry_date" required></div>
+                <div class="form-group">
+                    <label>心情</label>
+                    <select name="mood">
+                        <option value="happy">&#128522; 开心</option>
+                        <option value="excited">&#127881; 兴奋</option>
+                        <option value="calm">&#128524; 平静</option>
+                        <option value="neutral">&#128528; 一般</option>
+                        <option value="sad">&#128546; 难过</option>
+                        <option value="anxious">&#128552; 焦虑</option>
+                        <option value="angry">&#128545; 生气</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>可见范围</label>
+                    <select name="visibility">
+                        <option value="private">仅自己</option>
+                        <option value="couple">仅情侣</option>
+                        <option value="friends" selected>仅好友</option>
+                        <option value="public">公开</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>内容</label><textarea name="content" rows="4" required placeholder="今天想记录些什么..."></textarea></div>
+                <div class="form-group"><label>图片（最大2MB）</label><input type="file" name="image" accept="image/jpeg,image/png,image/webp"></div>
+                <button type="submit" class="btn btn-primary">保存日记</button>
+            </form>
+        </div>
+
+        <div class="filter-bar">
+            <input type="month" id="month-filter" value="{{ .month }}" onchange="location.href='/diary?month='+this.value" style="padding:5px 10px;border:1px solid var(--color-border);border-radius:6px;">
+            {{ if .month }}<a href="/diary" class="filter-chip">清除</a>{{ end }}
+        </div>
+
+        {{ if .entries }}
+        <div class="diary-list">
+            {{ range .entries }}
+            <div class="diary-entry">
+                <div class="diary-header">
+                    <span class="diary-mood">
+                        {{ if eq .Mood "happy" }}&#128522;{{ else if eq .Mood "excited" }}&#127881;{{ else if eq .Mood "calm" }}&#128524;{{ else if eq .Mood "sad" }}&#128546;{{ else if eq .Mood "anxious" }}&#128552;{{ else if eq .Mood "angry" }}&#128545;{{ else }}&#128528;{{ end }}
+                    </span>
+                    <span class="diary-date">{{ .EntryDate.Format "2006年01月02日" }}</span>
+                    <span class="diary-vis-badge vis-{{ .Visibility }}">{{ .Visibility }}</span>
+                </div>
+                <div class="diary-content">{{ .Content }}</div>
+                {{ if .ImagePath }}<div class="diary-image"><img src="/uploads/{{ .ImagePath }}" loading="lazy"></div>{{ end }}
+                <div class="diary-actions">
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('edit-{{ .ID }}').classList.toggle('hidden')">编辑</button>
+                    <form method="post" action="/diary/{{ .ID }}/delete" style="display:inline" onsubmit="return confirm('确定删除？')">
+                        <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                    </form>
+                </div>
+                <div id="edit-{{ .ID }}" class="hidden" style="margin-top:12px;">
+                    <form method="post" action="/diary/{{ .ID }}">
+                        <div class="form-group"><input type="date" name="entry_date" value="{{ .EntryDate.Format "2006-01-02" }}"></div>
+                        <div class="form-group">
+                            <select name="mood">
+                                <option value="happy" {{ if eq .Mood "happy" }}selected{{ end }}>&#128522; 开心</option>
+                                <option value="excited" {{ if eq .Mood "excited" }}selected{{ end }}>&#127881; 兴奋</option>
+                                <option value="calm" {{ if eq .Mood "calm" }}selected{{ end }}>&#128524; 平静</option>
+                                <option value="neutral" {{ if eq .Mood "neutral" }}selected{{ end }}>&#128528; 一般</option>
+                                <option value="sad" {{ if eq .Mood "sad" }}selected{{ end }}>&#128546; 难过</option>
+                                <option value="anxious" {{ if eq .Mood "anxious" }}selected{{ end }}>&#128552; 焦虑</option>
+                                <option value="angry" {{ if eq .Mood "angry" }}selected{{ end }}>&#128545; 生气</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <select name="visibility">
+                                <option value="private" {{ if eq .Visibility "private" }}selected{{ end }}>仅自己</option>
+                                <option value="couple" {{ if eq .Visibility "couple" }}selected{{ end }}>仅情侣</option>
+                                <option value="friends" {{ if eq .Visibility "friends" }}selected{{ end }}>仅好友</option>
+                                <option value="public" {{ if eq .Visibility "public" }}selected{{ end }}>公开</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><textarea name="content" rows="3">{{ .Content }}</textarea></div>
+                        <button type="submit" class="btn btn-sm btn-primary">保存</button>
+                    </form>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+            <p>还没有日记，写下今天的心情吧</p>
+        </div>
+        {{ end }}
+    </main>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

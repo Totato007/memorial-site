@@ -1,0 +1,13 @@
+# 编译产物
+memorial-site.exe
+memorial-site
+
+# 数据库和上传文件（用户数据）
+data/
+uploads/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

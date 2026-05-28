@@ -1,0 +1,57 @@
+{{ define "chat.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <!-- 好友选择 -->
+        {{ if .friends }}
+        <div class="chat-friend-select">
+            <span style="color:var(--color-text-muted);font-size:0.85rem;">选择聊天对象: </span>
+            {{ range .friends }}
+            <a href="/chat?with={{ .ID }}" class="filter-chip {{ if eq $.selectedRelID .ID }}active{{ end }}">
+                {{ if .Nickname }}{{ .Nickname }}{{ else }}{{ .Friend.Nickname }}{{ end }}
+            </a>
+            {{ end }}
+        </div>
+        {{ end }}
+
+        {{ if .selectedFriend }}
+        <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:12px;">与 {{ .selectedFriend.Nickname }} 的对话</h2>
+
+        <div id="chat-box" class="chat-box" data-rel="{{ .selectedRelID }}">
+            {{ range .messages }}
+            <div class="chat-msg {{ if eq .SenderID $.userID }}msg-mine{{ else }}msg-theirs{{ end }}" data-id="{{ .ID }}">
+                <div class="msg-sender">{{ .Sender.Nickname }}</div>
+                {{ if .Content }}<div class="msg-text">{{ .Content }}</div>{{ end }}
+                {{ if .ImagePath }}<div class="msg-image"><img src="/uploads/{{ .ImagePath }}" loading="lazy" onclick="this.classList.toggle('zoomed')"></div>{{ end }}
+                <div class="msg-time">{{ .CreatedAt.Format "01-02 15:04" }}</div>
+            </div>
+            {{ end }}
+        </div>
+
+        <form id="chat-form" class="chat-form" onsubmit="return sendMessage({{ .selectedRelID }})">
+            <div class="chat-input-row">
+                <textarea id="chat-input" name="content" rows="2" placeholder="发送消息..."></textarea>
+                <input type="file" id="chat-image" name="image" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="document.getElementById('img-label').textContent=this.files[0]?'已选图':'图片'">
+                <label id="img-label" for="chat-image" class="btn btn-sm btn-outline chat-img-btn">图片</label>
+                <button type="submit" class="btn btn-sm btn-primary">发送</button>
+            </div>
+            <div id="chat-error" class="alert alert-error hidden"></div>
+        </form>
+        {{ else }}
+        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+            <p>还没有好友，先去添加好友吧</p>
+            <a href="/friends/add" class="btn btn-primary btn-sm">添加好友</a>
+        </div>
+        {{ end }}
+    </main>
+    {{ template "footer" . }}
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>
+{{ end }}

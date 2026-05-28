@@ -1,0 +1,54 @@
+# 纪念站 Nginx 反向代理配置
+# 位置: /etc/nginx/sites-available/memorial
+#
+# 部署步骤:
+#   1. sudo cp nginx.conf.example /etc/nginx/sites-available/memorial
+#   2. sudo ln -s /etc/nginx/sites-available/memorial /etc/nginx/sites-enabled/
+#   3. sudo nginx -t && sudo systemctl reload nginx
+
+# === 流量限制配置 ===
+# 以下配置控制带宽消耗，可按需调整:
+#   limit_req_zone: 请求频率限制 (默认 30r/m = 每分钟30请求)
+#   client_max_body_size: 上传文件大小上限 (默认 2MB，与 config.go 中 MaxImgSize 保持一致)
+
+limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
+limit_req_zone $binary_remote_addr zone=api:10m rate=30r/m;
+
+server {
+    listen 80;
+    server_name your-domain.com;       # ← 替换为你的域名或服务器IP
+
+    # 上传文件大小限制 (必须 ≥ config.go 中的 MaxImgSize)
+    client_max_body_size 3m;
+
+    # === 静态资源 (浏览器缓存 1 年) ===
+    location /static/ {
+        root /opt/memorial;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # === 上传文件 (短期缓存) ===
+    location /uploads/ {
+        root /opt/memorial;
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    # === 反向代理到 Go 应用 ===
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # 登录接口限流
+        location /login { limit_req zone=login burst=3 nodelay; proxy_pass http://127.0.0.1:8080; }
+        location /register { limit_req zone=login burst=3 nodelay; proxy_pass http://127.0.0.1:8080; }
+    }
+}
+
+# === HTTPS 配置 (Let's Encrypt 自动生成) ===
+# 安装 certbot 后运行: sudo certbot --nginx -d your-domain.com
+# 证书会自动续期

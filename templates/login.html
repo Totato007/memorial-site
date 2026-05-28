@@ -1,0 +1,33 @@
+{{ define "login.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1 class="auth-title">纪念站</h1>
+            <p class="auth-subtitle">属于我们的专属纪念空间</p>
+            {{ if .error }}
+            <div class="alert alert-error">{{ .error }}</div>
+            {{ end }}
+            <form method="post" action="/login" class="auth-form">
+                <div class="form-group">
+                    <label for="username">账号/手机号</label>
+                    <input type="text" id="username" name="username" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">登录</button>
+            </form>
+            <p class="auth-switch">还没有账号？<a href="/register">立即注册</a></p>
+        </div>
+    </div>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

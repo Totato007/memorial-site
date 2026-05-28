@@ -1,0 +1,41 @@
+{{ define "public_feed.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:16px;">公共广场</h2>
+        <p style="color:var(--color-text-muted);font-size:0.85rem;margin-bottom:16px;">这里展示所有人公开分享的心情日记</p>
+
+        {{ if .entries }}
+        <div class="diary-list">
+            {{ range .entries }}
+            <div class="diary-entry">
+                <div class="diary-header">
+                    <span class="diary-mood">
+                        {{ if eq .Mood "happy" }}&#128522;{{ else if eq .Mood "excited" }}&#127881;{{ else if eq .Mood "calm" }}&#128524;{{ else if eq .Mood "sad" }}&#128546;{{ else if eq .Mood "anxious" }}&#128552;{{ else if eq .Mood "angry" }}&#128545;{{ else }}&#128528;{{ end }}
+                    </span>
+                    <span class="diary-author">{{ .User.Nickname }}</span>
+                    <span class="diary-date">{{ .EntryDate.Format "2006-01-02" }}</span>
+                </div>
+                <div class="diary-content">{{ .Content }}</div>
+                {{ if .ImagePath }}
+                <div class="diary-image"><img src="/uploads/{{ .ImagePath }}" loading="lazy"></div>
+                {{ end }}
+            </div>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+            <p>还没有公开的日记</p>
+        </div>
+        {{ end }}
+    </main>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}

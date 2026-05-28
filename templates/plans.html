@@ -1,0 +1,126 @@
+{{ define "plans.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <div class="card-header">
+            <h2 style="font-size:1.2rem;font-weight:600;">未来计划</h2>
+            <button onclick="document.getElementById('new-plan-form').classList.toggle('hidden')" class="btn btn-primary btn-sm">+ 新建计划</button>
+        </div>
+
+        {{ if .error }}
+        <div class="alert alert-error">{{ .error }}</div>
+        {{ end }}
+
+        <div id="new-plan-form" class="card hidden">
+            <form method="post" action="/plans">
+                <div class="form-group"><label>计划名称 *</label><input type="text" name="title" required></div>
+                <div class="form-group"><label>具体内容</label><textarea name="content" rows="2"></textarea></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                    <div class="form-group">
+                        <label>分类</label>
+                        <select name="category">
+                            <option value="general">通用</option><option value="travel">旅行</option><option value="life">生活</option>
+                            <option value="study">学习</option><option value="work">工作</option><option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>可见范围</label>
+                        <select name="visibility">
+                            <option value="private">仅自己</option><option value="couple">仅情侣</option>
+                            <option value="friends" selected>仅好友</option><option value="public">公开</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>计划日期</label><input type="date" name="target_date"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">创建计划</button>
+            </form>
+        </div>
+
+        <div class="filter-bar">
+            <a href="/plans" class="filter-chip {{ if not .status }}active{{ end }}">全部</a>
+            <a href="/plans?status=not_started" class="filter-chip {{ if eq .status "not_started" }}active{{ end }}">未开始</a>
+            <a href="/plans?status=in_progress" class="filter-chip {{ if eq .status "in_progress" }}active{{ end }}">进行中</a>
+            <a href="/plans?status=done" class="filter-chip {{ if eq .status "done" }}active{{ end }}">已完成</a>
+        </div>
+
+        {{ if .plans }}
+        <div class="plan-list">
+            {{ range .plans }}
+            <div class="plan-item status-{{ .Status }}">
+                <div class="plan-left">
+                    <div class="plan-status-dot"></div>
+                    <div class="plan-info">
+                        <div class="plan-title">{{ .Title }} <span class="vis-badge-sm vis-{{ .Visibility }}">{{ .Visibility }}</span></div>
+                        {{ if .Content }}<div class="plan-desc">{{ .Content }}</div>{{ end }}
+                        <div class="plan-meta">
+                            {{ if .TargetDate }}<span>&#128197; {{ .TargetDate.Format "2006-01-02" }}</span>{{ end }}
+                            <span class="plan-cat-tag">{{ .Category }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="plan-actions">
+                    <select class="plan-status-select" onchange="updateStatus({{ .ID }}, this.value)">
+                        <option value="not_started" {{ if eq .Status "not_started" }}selected{{ end }}>未开始</option>
+                        <option value="in_progress" {{ if eq .Status "in_progress" }}selected{{ end }}>进行中</option>
+                        <option value="done" {{ if eq .Status "done" }}selected{{ end }}>已完成</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('edit-plan-{{ .ID }}').classList.toggle('hidden')">编辑</button>
+                    <form method="post" action="/plans/{{ .ID }}/delete" style="display:inline" onsubmit="return confirm('确定删除？')">
+                        <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                    </form>
+                </div>
+                <div id="edit-plan-{{ .ID }}" class="plan-edit-form hidden" style="grid-column:1/-1;">
+                    <form method="post" action="/plans/{{ .ID }}">
+                        <div class="form-group"><input type="text" name="title" value="{{ .Title }}" required></div>
+                        <div class="form-group"><textarea name="content" rows="2">{{ .Content }}</textarea></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                            <div class="form-group">
+                                <select name="category">
+                                    <option value="general" {{ if eq .Category "general" }}selected{{ end }}>通用</option>
+                                    <option value="travel" {{ if eq .Category "travel" }}selected{{ end }}>旅行</option>
+                                    <option value="life" {{ if eq .Category "life" }}selected{{ end }}>生活</option>
+                                    <option value="study" {{ if eq .Category "study" }}selected{{ end }}>学习</option>
+                                    <option value="work" {{ if eq .Category "work" }}selected{{ end }}>工作</option>
+                                    <option value="other" {{ if eq .Category "other" }}selected{{ end }}>其他</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <select name="visibility">
+                                    <option value="private" {{ if eq .Visibility "private" }}selected{{ end }}>仅自己</option>
+                                    <option value="couple" {{ if eq .Visibility "couple" }}selected{{ end }}>仅情侣</option>
+                                    <option value="friends" {{ if eq .Visibility "friends" }}selected{{ end }}>仅好友</option>
+                                    <option value="public" {{ if eq .Visibility "public" }}selected{{ end }}>公开</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><input type="date" name="target_date" value="{{ if .TargetDate }}{{ .TargetDate.Format "2006-01-02" }}{{ end }}"></div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-sm btn-primary">保存</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('edit-plan-{{ .ID }}').classList.add('hidden')">取消</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+            <p>还没有计划</p>
+        </div>
+        {{ end }}
+    </main>
+    {{ template "footer" . }}
+    <script>
+    function updateStatus(id, s) {
+        fetch('/plans/'+id+'/status',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'status='+s}).then(function(){location.reload()});
+    }
+    </script>
+</body>
+</html>
+{{ end }}

@@ -1,0 +1,33 @@
+{{ define "header" }}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/static/css/app.css">
+{{ end }}
+
+{{ define "nav" }}
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="/dashboard" class="nav-brand">纪念站</a>
+        <div class="nav-links">
+            {{ if .userID }}
+                <a href="/dashboard">首页</a>
+                <a href="/friends">好友</a>
+                <a href="/diary">日记</a>
+                <a href="/plans">计划</a>
+                <a href="/albums">相册</a>
+                <a href="/public">广场</a>
+                <a href="/profile">{{ .username }}</a>
+                {{ if eq .role "admin" }}
+                    <a href="/admin">管理</a>
+                {{ end }}
+                <a href="/logout" onclick="event.preventDefault();document.getElementById('logout-form').submit()">退出</a>
+                <form id="logout-form" method="post" action="/logout" style="display:none"></form>
+            {{ end }}
+        </div>
+    </div>
+</nav>
+{{ end }}
+
+{{ define "footer" }}
+<footer class="footer"><p>属于我们的专属纪念空间</p></footer>
+{{ end }}

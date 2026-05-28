@@ -1,0 +1,52 @@
+{{ define "admin_dashboard.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 管理后台</title>
+    <style>
+        .admin-layout { display: flex; min-height: calc(100vh - 56px); }
+        .admin-sidebar { width: 180px; background: var(--color-surface); border-right: 1px solid var(--color-border); padding: 16px 0; flex-shrink: 0; }
+        .admin-sidebar a { display: block; padding: 10px 20px; font-size: 0.9rem; color: var(--color-text-muted); text-decoration: none; }
+        .admin-sidebar a:hover, .admin-sidebar a.active { background: var(--color-bg); color: var(--color-text); }
+        .admin-main { flex: 1; padding: 24px; max-width: 900px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .stat-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 20px; text-align: center; }
+        .stat-card .stat-num { font-size: 2rem; font-weight: 700; color: var(--color-primary); }
+        .stat-card .stat-lbl { font-size: 0.82rem; color: var(--color-text-muted); margin-top: 4px; }
+    </style>
+</head>
+<body>
+    {{ template "nav" . }}
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <a href="/admin/" class="active">概览</a>
+            <a href="/admin/users">用户管理</a>
+            <a href="/profile">修改密码</a>
+            <a href="/dashboard">← 返回前台</a>
+        </aside>
+        <main class="admin-main">
+            <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:20px;">站点概览</h2>
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-num">{{ .userCount }}</div>
+                    <div class="stat-lbl">注册用户</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">{{ .relCount }}</div>
+                    <div class="stat-lbl">活跃关系</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">{{ .msgCount }}</div>
+                    <div class="stat-lbl">聊天消息</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">{{ .photoCount }}</div>
+                    <div class="stat-lbl">照片总数</div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
+{{ end }}

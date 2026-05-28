@@ -1,0 +1,75 @@
+{{ define "friend_detail.html" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    {{ template "header" . }}
+    <title>{{ .title }} - 纪念站</title>
+</head>
+<body>
+    {{ template "nav" . }}
+    <main class="container">
+        <div class="card relationship-card">
+            <div class="rel-header">
+                <span class="rel-badge">{{ if .rel.CustomType }}{{ .rel.CustomType }}{{ else }}{{ .rel.Type }}{{ end }}</span>
+            </div>
+            <div class="rel-body">
+                <div class="rel-person">
+                    <div class="rel-avatar">{{ if .rel.Friend }}{{ firstChar .rel.Friend.Nickname }}{{ else }}TA{{ end }}</div>
+                    <span class="rel-name">{{ if .rel.Nickname }}{{ .rel.Nickname }}{{ else }}{{ if .rel.Friend }}{{ .rel.Friend.Nickname }}{{ else }}TA{{ end }}{{ end }}</span>
+                </div>
+                <div class="status-badge status-{{ .rel.Friend.LastActiveAt | onlineClass }}" style="margin-top:8px;">
+                    {{ .rel.Friend.LastActiveAt | onlineStatus }}
+                </div>
+                {{ if .rel.Notes }}
+                <p class="rel-notes">{{ .rel.Notes }}</p>
+                {{ end }}
+            </div>
+            <div class="rel-stats">
+                <div class="stat-item">
+                    <span class="stat-number">{{ .daysTogether }}</span>
+                    <span class="stat-label">相识天数</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ .daysUntil }}</span>
+                    <span class="stat-label">距离纪念日</span>
+                </div>
+            </div>
+            <div class="rel-footer">
+                <span class="rel-start">起始日期：{{ .startDateFmt }}</span>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('edit-form').classList.toggle('hidden')">编辑</button>
+                    <a href="/chat?with={{ .rel.ID }}" class="btn btn-sm btn-primary">发消息</a>
+                    <form method="post" action="/friends/{{ .rel.ID }}/remove" style="display:inline" onsubmit="return confirm('确定删除该好友？')">
+                        <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 编辑表单 -->
+            <div id="edit-form" class="hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-border);">
+                <form method="post" action="/friends/{{ .rel.ID }}/edit">
+                    <div class="form-group">
+                        <label>备注昵称</label>
+                        <input type="text" name="nickname" value="{{ .rel.Nickname }}">
+                    </div>
+                    <div class="form-group">
+                        <label>关系名称</label>
+                        <input type="text" name="custom_type" value="{{ .rel.CustomType }}">
+                    </div>
+                    <div class="form-group">
+                        <label>起始日期</label>
+                        <input type="date" name="start_date" value="{{ .rel.StartDate.Format "2006-01-02" }}">
+                    </div>
+                    <div class="form-group">
+                        <label>寄语</label>
+                        <textarea name="notes" rows="2">{{ .rel.Notes }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">保存</button>
+                </form>
+            </div>
+        </div>
+    </main>
+    {{ template "footer" . }}
+</body>
+</html>
+{{ end }}
