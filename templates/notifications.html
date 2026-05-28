@@ -4,62 +4,121 @@
 <head>
     {{ template "header" . }}
     <title>{{ .title }} - 纪念站</title>
+    <style>
+        .msg-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--color-border); }
+        .msg-tab {
+            padding: 10px 20px; font-size: 0.9rem; cursor: pointer;
+            color: var(--color-text-muted); border-bottom: 2px solid transparent;
+            margin-bottom: -2px; transition: all 0.15s; background: none; border-top: none;
+            border-left: none; border-right: none; font-family: inherit;
+        }
+        .msg-tab:hover { color: var(--color-text); }
+        .msg-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: 500; }
+        .msg-panel { display: none; }
+        .msg-panel.active { display: block; }
+        .req-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .req-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+        .req-type { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; background: var(--color-bg); }
+        .req-status { font-size: 0.78rem; padding: 2px 8px; border-radius: 10px; }
+        .req-status.pending { background: #fff8e1; color: #e8a838; }
+        .req-status.declined { background: #fce4e4; color: var(--color-error); }
+        .empty-state { text-align: center; padding: 40px; color: var(--color-text-muted); }
+    </style>
 </head>
 <body>
     {{ template "nav" . }}
     <main class="container">
-        <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:16px;">消息中心</h2>
+        <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:4px;">消息中心</h2>
 
-        <!-- 好友申请 -->
-        {{ if .requests }}
-        <div class="card" style="margin-bottom:16px;">
-            <h3 class="card-title">好友申请 ({{ len .requests }})</h3>
-            {{ range .requests }}
-            <div class="search-result-item">
-                <div>
-                    <strong>{{ .User.Nickname }}</strong>
-                    <span style="color:var(--color-text-muted);font-size:0.85rem;">@{{ .User.Username }}</span>
-                    <div style="font-size:0.8rem;color:var(--color-text-muted);">
-                        想成为你的 {{ if .CustomType }}{{ .CustomType }}{{ else }}{{ .Type }}{{ end }}
-                        &middot; {{ .CreatedAt.Format "01-02 15:04" }}
+        <div class="msg-tabs">
+            <button class="msg-tab active" onclick="switchTab('incoming')">好友申请
+                {{ if .incomingReqs }}<span style="background:var(--color-error);color:#fff;border-radius:10px;padding:1px 6px;font-size:0.7rem;margin-left:4px;">{{ len .incomingReqs }}</span>{{ end }}
+            </button>
+            <button class="msg-tab" onclick="switchTab('sent')">我的申请
+                {{ if .sentReqs }}<span style="color:var(--color-text-muted);font-size:0.75rem;margin-left:2px;">({{ len .sentReqs }})</span>{{ end }}
+            </button>
+            <button class="msg-tab" onclick="switchTab('chats')">最近消息</button>
+        </div>
+
+        <!-- 收到的申请 -->
+        <div id="panel-incoming" class="msg-panel active">
+            {{ if .incomingReqs }}
+            {{ range .incomingReqs }}
+            <div class="req-card">
+                <div class="req-info">
+                    <div class="fr-avatar">{{ firstChar .User.Nickname }}</div>
+                    <div>
+                        <strong>{{ .User.Nickname }}</strong>
+                        <span class="req-type">{{ if .CustomType }}{{ .CustomType }}{{ else }}{{ .Type }}{{ end }}</span>
+                        <div style="font-size:0.78rem;color:var(--color-text-muted);">{{ .CreatedAt.Format "01-02 15:04" }}</div>
                     </div>
                 </div>
                 <div class="btn-group">
-                    <form method="post" action="/friends/{{ .ID }}/accept" style="display:inline">
-                        <button type="submit" class="btn btn-sm btn-primary">通过</button>
-                    </form>
-                    <form method="post" action="/friends/{{ .ID }}/decline" style="display:inline">
-                        <button type="submit" class="btn btn-sm btn-outline">拒绝</button>
-                    </form>
+                    <form method="post" action="/friends/{{ .ID }}/accept"><button type="submit" class="btn btn-sm btn-primary">通过</button></form>
+                    <form method="post" action="/friends/{{ .ID }}/decline"><button type="submit" class="btn btn-sm btn-outline">拒绝</button></form>
                 </div>
             </div>
             {{ end }}
-        </div>
-        {{ end }}
-
-        <!-- 最近聊天 -->
-        {{ if .recentChats }}
-        <div class="card">
-            <h3 class="card-title">最近消息</h3>
-            {{ range .recentChats }}
-            <a href="/chat?with={{ .RelID }}" class="search-result-item" style="text-decoration:none;color:inherit;">
-                <div>
-                    <strong>{{ .FriendName }}</strong>
-                    <div style="font-size:0.82rem;color:var(--color-text);margin-top:2px;">{{ .LastMsg }}</div>
-                </div>
-                <span style="font-size:0.75rem;color:var(--color-text-muted);">{{ .Time }}</span>
-            </a>
+            {{ else }}
+            <div class="empty-state">暂无待处理的好友申请</div>
             {{ end }}
         </div>
-        {{ end }}
 
-        {{ if not .requests }}{{ if not .recentChats }}
-        <div class="card" style="text-align:center;padding:40px;color:var(--color-text-muted);">
-            <p>暂无新消息</p>
+        <!-- 我发出的申请 -->
+        <div id="panel-sent" class="msg-panel">
+            {{ if .sentReqs }}
+            {{ range .sentReqs }}
+            <div class="req-card">
+                <div class="req-info">
+                    <div class="fr-avatar">{{ if .Friend }}{{ firstChar .Friend.Nickname }}{{ else }}TA{{ end }}</div>
+                    <div>
+                        <strong>{{ if .Friend }}{{ .Friend.Nickname }}{{ else }}TA{{ end }}</strong>
+                        <span class="req-type">{{ if .CustomType }}{{ .CustomType }}{{ else }}{{ .Type }}{{ end }}</span>
+                        <span class="req-status {{ .Status }}">{{ if eq .Status "pending" }}等待中{{ else }}已拒绝{{ end }}</span>
+                        <div style="font-size:0.78rem;color:var(--color-text-muted);">{{ .CreatedAt.Format "01-02 15:04" }}</div>
+                    </div>
+                </div>
+                {{ if eq .Status "declined" }}
+                <form method="post" action="/friends/{{ .ID }}/remove"><button type="submit" class="btn btn-sm btn-outline">移除</button></form>
+                {{ end }}
+            </div>
+            {{ end }}
+            {{ else }}
+            <div class="empty-state">暂无发出的申请</div>
+            {{ end }}
         </div>
-        {{ end }}{{ end }}
+
+        <!-- 最近消息 -->
+        <div id="panel-chats" class="msg-panel">
+            {{ if .chats }}
+            {{ range .chats }}
+            <a href="/chat?with={{ .RelID }}" class="req-card" style="text-decoration:none;color:inherit;cursor:pointer;">
+                <div class="req-info">
+                    <span class="req-type">{{ .RelType }}</span>
+                    <div style="min-width:0;">
+                        <strong>{{ .FriendName }}</strong>
+                        <div style="font-size:0.82rem;color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ .LastMsg }}</div>
+                    </div>
+                </div>
+                <span style="font-size:0.75rem;color:var(--color-text-muted);flex-shrink:0;">{{ .Time }}</span>
+            </a>
+            {{ end }}
+            {{ else }}
+            <div class="empty-state">暂无聊天消息</div>
+            {{ end }}
+        </div>
     </main>
     {{ template "footer" . }}
+    <script>
+    function switchTab(name) {
+        document.querySelectorAll('.msg-tab').forEach(function(t,i){
+            t.classList.toggle('active', i==['incoming','sent','chats'].indexOf(name));
+        });
+        document.querySelectorAll('.msg-panel').forEach(function(p){
+            p.classList.toggle('active', p.id === 'panel-'+name);
+        });
+    }
+    </script>
 </body>
 </html>
 {{ end }}

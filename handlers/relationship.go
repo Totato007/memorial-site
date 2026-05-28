@@ -351,23 +351,33 @@ func (h *RelationshipHandler) PendingCount(userID uint) int64 {
 	return count
 }
 
-// Notifications 消息中心 — 好友申请 + 最近聊天
+// Notifications 消息中心 — 分类展示好友申请、我的申请、最近消息
 func (h *RelationshipHandler) Notifications(c *gin.Context) {
 	userID := c.GetUint("userID")
 
-	var requests []models.Relationship
+	// 1. 收到的申请 (等待我处理)
+	var incomingReqs []models.Relationship
 	h.db.Where("friend_id = ? AND status = ?", userID, "pending").
 		Preload("User").
 		Order("created_at DESC").
-		Find(&requests)
+		Find(&incomingReqs)
 
-	type RecentChat struct {
+	// 2. 我发出的申请 (pending + declined)
+	var sentReqs []models.Relationship
+	h.db.Where("user_id = ? AND status IN ?", userID, []string{"pending", "declined"}).
+		Preload("Friend").
+		Order("created_at DESC").
+		Find(&sentReqs)
+
+	// 3. 最近聊天 — 每个活跃关系取最新一条消息
+	type ChatPreview struct {
 		RelID      uint
+		RelType    string
 		FriendName string
 		LastMsg    string
 		Time       string
 	}
-	var recentChats []RecentChat
+	var chats []ChatPreview
 
 	var rels []models.Relationship
 	h.db.Where("user_id = ? AND status = ?", userID, "active").
@@ -375,31 +385,35 @@ func (h *RelationshipHandler) Notifications(c *gin.Context) {
 
 	for _, r := range rels {
 		var msg models.ChatMessage
-		if err := h.db.Where("(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)", userID, r.FriendID, r.FriendID, userID).
-			Order("created_at DESC").First(&msg).Error; err == nil {
-			friendName := ""
-			if r.Nickname != "" {
-				friendName = r.Nickname
-			} else if r.Friend != nil {
-				friendName = r.Friend.Nickname
-			}
-			lastMsg := msg.Content
-			if lastMsg == "" && msg.ImagePath != "" {
-				lastMsg = "[图片]"
-			}
-			recentChats = append(recentChats, RecentChat{
-				RelID:      r.ID,
-				FriendName: friendName,
-				LastMsg:    lastMsg,
-				Time:       msg.CreatedAt.Format("01-02 15:04"),
-			})
+		err := h.db.Where("(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
+			userID, r.FriendID, r.FriendID, userID).
+			Order("id DESC").First(&msg).Error
+		if err != nil {
+			continue
 		}
+		name := r.Nickname
+		if name == "" && r.Friend != nil {
+			name = r.Friend.Nickname
+		}
+		last := msg.Content
+		if last == "" && msg.ImagePath != "" {
+			last = "[图片]"
+		}
+		chats = append(chats, ChatPreview{
+			RelID:      r.ID,
+			RelType:    r.Type,
+			FriendName: name,
+			LastMsg:    last,
+			Time:       msg.CreatedAt.Format("01-02 15:04"),
+		})
 	}
 
 	c.HTML(http.StatusOK, "notifications.html", gin.H{
-		"title":       "消息中心",
-		"requests":    requests,
-		"recentChats": recentChats,
+		"title":        "消息中心",
+		"incomingReqs": incomingReqs,
+		"sentReqs":     sentReqs,
+		"chats":        chats,
 	})
 }
+
 

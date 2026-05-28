@@ -11,5 +11,5 @@ type ChatMessage struct {
 	ImagePath  string    `gorm:"size:255" json:"image_path"`
 	CreatedAt  time.Time `json:"created_at"`
 
-	Sender *User `gorm:"foreignKey:SenderID" json:"-"`
+	Sender *User `gorm:"foreignKey:SenderID" json:"sender"`
 }

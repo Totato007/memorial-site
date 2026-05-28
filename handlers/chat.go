@@ -54,10 +54,12 @@ func (h *ChatHandler) ChatPage(c *gin.Context) {
 		}
 	}
 
+	selRelID, _ := strconv.ParseUint(selectedID, 10, 64)
+
 	c.HTML(http.StatusOK, "chat.html", gin.H{
 		"title":          "互动留言",
 		"friends":        friends,
-		"selectedRelID":  selectedID,
+		"selectedRelID":  uint(selRelID),
 		"selectedFriend": selectedFriend,
 		"messages":       messages,
 		"userID":         userID,
